@@ -4,8 +4,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
 var app = express();
 const sqlite = require("sqlite");
+const fs = require("fs-extra");
 async function main() {
     try {
+        await fs.mkdirp(".data");
         var db = await sqlite.open(".data/comments.sqlite");
         console.log('DB Connected');
         await db.migrate({});

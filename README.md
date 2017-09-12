@@ -29,6 +29,6 @@ Moderation Features
 
 - You may choose to require a **moderation queue** for all comments.
 - May have more than one moderator for a site.
-- Askimet integration for automated spam detection. Seperate spam queue.
 - Email moderators on all comments.
 - All settings editable in simple web ui.
+- Can lock individual posts

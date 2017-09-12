@@ -3,9 +3,11 @@
 import * as express from "express";
 var app = express();
 import * as sqlite from 'sqlite';
+import * as fs from 'fs-extra';
 
 async function main(){
   try{
+    await fs.mkdirp(".data")
     var db = await sqlite.open(".data/comments.sqlite")
     console.log('DB Connected');
     await db.migrate({})
