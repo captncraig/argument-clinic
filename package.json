@@ -1,11 +1,11 @@
 {
-  "name": "my-glitch-app",
+  "name": "argument-clinic",
   "version": "0.0.1",
   "description": "What am I about?",
   "main": "server.js",
   "scripts": {
-    "start": "npm run build:live",
-    "build:live": "tsc && node server.js"
+    "start": "tsc && node server.js",
+    "watch": ""
   },
   "dependencies": {
     "@types/express": "^4.0.37",

@@ -39,10 +39,10 @@ CREATE TABLE ModeratorTokens (
 
 CREATE TABLE Settings (
   id INTEGER PRIMARY KEY CHECK (id = 0),
-  hasInitialized BOOLEAN NOT NULL DEFAULT false,
+  hasInitialized BOOLEAN NOT NULL DEFAULT 0,
   allowedDomains TEXT NOT NULL DEFAULT '',
-  requireModeration BOOLEAN NOT NULL DEFAULT false,
-  checkUrls BOOLEAN NOT NULL DEFAULT false,
+  requireModeration BOOLEAN NOT NULL DEFAULT 0,
+  checkUrls BOOLEAN NOT NULL DEFAULT 0,
 
   smtpHost TEXT NOT NULL DEFAULT '',
   smtpUser TEXT NOT NULL DEFAULT '',
