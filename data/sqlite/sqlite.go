@@ -1,13 +1,14 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 	"sync"
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/captncraig/arguments/data"
-	"github.com/captncraig/arguments/models"
+	"github.com/captncraig/argument-clinic/data"
+	"github.com/captncraig/argument-clinic/models"
 )
 
 type db struct {
@@ -29,6 +30,10 @@ func New(filename string) (data.DataAccess, error) {
 	return d, nil
 }
 
-func (d *db) CreateComment(*models.Comment) (uint64, error) {
+func (d *db) SiteFromHost(ctx context.Context, host string) (*models.Site, error) {
+	return nil, nil
+}
+
+func (d *db) CreateComment(context.Context, *models.Comment) (uint64, error) {
 	return 0, nil
 }
