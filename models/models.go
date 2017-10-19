@@ -14,6 +14,7 @@ type Site struct {
 // Page is any unit that has comments
 type Page struct {
 	PageID uint64
+
 	// Key will usually be the full url of the containing page.
 	// It can be any unique string though, if other scenarios are needed.
 	Key string

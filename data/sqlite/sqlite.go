@@ -17,10 +17,10 @@ type db struct {
 }
 
 // New creates a new sql data store, and ensures that all data migrations are run.
-func New(filename string) (data.DataAccess, error) {
+func New(sqlFile string, siteConfigFile string) (data.DataAccess, error) {
 	d := &db{}
 	var err error
-	d.db, err = sql.Open("sqlite3", filename)
+	d.db, err = sql.Open("sqlite3", sqlFile)
 	if err != nil {
 		return nil, err
 	}
