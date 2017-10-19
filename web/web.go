@@ -15,6 +15,7 @@ func Listen(addr string, db data.DataAccess) error {
 	routeTable := mux.NewRouter()
 
 	for _, route := range routes {
+		currentRoute = route.Name
 		routeTable.
 			Methods(route.Method).
 			Name(route.Name).
@@ -26,12 +27,17 @@ func Listen(addr string, db data.DataAccess) error {
 	return http.ListenAndServe(addr, routeTable)
 }
 
-var routes = []struct {
+type routeDef struct {
 	Name    string
 	Method  string
 	Route   string
 	Handler http.Handler
-}{
+}
+
+// middleware constructors can read and save this at creation time for additional context
+var currentRoute routeDef
+
+var routes = []routeDef{
 	{
 		Name:    "CreateComment",
 		Method:  http.MethodGet,

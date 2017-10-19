@@ -11,7 +11,7 @@ const handlerTag = "handler"
 
 var inFlightGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 	Name: "in_flight_requests",
-	Help: "A gauge of requests currently being served by the wrapped handler.",
+	Help: "A gauge of requests currently being served by handler.",
 }, []string{handlerTag})
 
 var reqTimes = prometheus.NewHistogramVec(
@@ -23,11 +23,20 @@ var reqTimes = prometheus.NewHistogramVec(
 	[]string{"handler"},
 )
 
+var reqStatuses = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "request_status",
+		Help: "Counts of requests by status and handler",
+	},
+	[]string{"handler", "status"},
+)
+
 func init() {
 	prometheus.MustRegister(inFlightGauge, reqTimes)
 }
 
 func requestMetrics(h http.Handler) http.Handler {
+	var name = currentRoute.Name
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rn := getRoute(r)
 		inflightG := inFlightGauge.WithLabelValues(rn)
