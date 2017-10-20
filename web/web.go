@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -15,7 +16,7 @@ func Listen(addr string, db data.DataAccess) error {
 	routeTable := mux.NewRouter()
 
 	for _, route := range routes {
-		currentRoute = route.Name
+		currentRoute = route
 		routeTable.
 			Methods(route.Method).
 			Name(route.Name).
@@ -53,5 +54,5 @@ var routes = []routeDef{
 }
 
 func createComment(r *http.Request) (interface{}, error) {
-	return nil, apiError{code: 400, message: "need credentials"}
+	return nil, fmt.Errorf("AAAAAA")
 }

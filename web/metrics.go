@@ -1,50 +1,68 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const handlerTag = "handler"
 
-var inFlightGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+var inFlightGauges = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 	Name: "in_flight_requests",
-	Help: "A gauge of requests currently being served by handler.",
+	Help: "Number of requests currently being served by handler.",
 }, []string{handlerTag})
 
-var reqTimes = prometheus.NewHistogramVec(
-	prometheus.HistogramOpts{
-		Name:    "request_duration",
-		Help:    "A histogram of latencies for requests, in milliseconds.",
-		Buckets: []float64{1, 2, 3, 4, 5, 10, 15, 25, 50, 100, 200},
-	},
-	[]string{"handler"},
-)
+var requestTimeOpts = prometheus.HistogramOpts{
+	Name:    "request_duration",
+	Help:    "A histogram of request times, in milliseconds.",
+	Buckets: stdTimeBuckets,
+}
 
-var reqStatuses = prometheus.NewCounterVec(
-	prometheus.CounterOpts{
-		Name: "request_status",
-		Help: "Counts of requests by status and handler",
-	},
-	[]string{"handler", "status"},
-)
+var requestSizeOpts = prometheus.HistogramOpts{
+	Name:    "request_size",
+	Help:    "A histogram of request sizes, in bytes.",
+	Buckets: stdSizeBuckets,
+}
+
+var responseSizeOpts = prometheus.HistogramOpts{
+	Name:    "response_size",
+	Help:    "A histogram of response sizes, in bytes.",
+	Buckets: stdSizeBuckets,
+}
+
+var stdSizeBuckets = []float64{100, 1024, 16 * 1024, 128 * 1024, 1024 * 1024}
+var stdTimeBuckets = []float64{1, 5, 10, 20, 50, 100, 500, 1000, 2000}
 
 func init() {
-	prometheus.MustRegister(inFlightGauge, reqTimes)
+	prometheus.MustRegister(inFlightGauges)
 }
 
 func requestMetrics(h http.Handler) http.Handler {
 	var name = currentRoute.Name
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		rn := getRoute(r)
-		inflightG := inFlightGauge.WithLabelValues(rn)
-		inflightG.Inc()
-		defer inflightG.Dec()
-		timerH := reqTimes.WithLabelValues(rn)
-		start := time.Now()
-		defer timerH.Observe(float64(time.Now().Sub(start) / time.Millisecond))
-		h.ServeHTTP(w, r)
-	})
+	fmt.Println(name)
+	inflight := inFlightGauges.WithLabelValues(name)
+	cl := prometheus.Labels{"handler": name}
+
+	requestTimeOpts.ConstLabels = cl
+	reqTimeVec := prometheus.NewHistogramVec(requestTimeOpts, []string{"code"})
+	prometheus.Register(reqTimeVec)
+
+	requestSizeOpts.ConstLabels = cl
+	reqSizeVec := prometheus.NewHistogramVec(requestSizeOpts, []string{})
+	prometheus.Register(reqSizeVec)
+
+	responseSizeOpts.ConstLabels = cl
+	respSizeVec := prometheus.NewHistogramVec(responseSizeOpts, []string{})
+	prometheus.Register(respSizeVec)
+
+	// inside out
+	h = promhttp.InstrumentHandlerRequestSize(reqSizeVec, h)
+	h = promhttp.InstrumentHandlerResponseSize(respSizeVec, h)
+	h = promhttp.InstrumentHandlerDuration(reqTimeVec, h)
+	h = promhttp.InstrumentHandlerInFlight(inflight, h)
+
+	return h
 }

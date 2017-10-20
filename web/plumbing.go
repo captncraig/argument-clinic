@@ -1,18 +1,16 @@
 package web
 
 import (
-	"context"
 	"encoding/json"
 	"html/template"
-	"io"
 	"log"
 	"net/http"
 	"strings"
 
-	"github.com/gorilla/mux"
+	"github.com/bugsnag/bugsnag-go"
 
+	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
-	"github.com/oxtoacart/bpool"
 )
 
 // slightly modified handler type.
@@ -20,6 +18,7 @@ import (
 // type of returned data matters:
 // int - simple status code
 // templateToRender - html template and context
+// apiError - error message
 // anything else - json serialized to response
 type myHandler func(r *http.Request) (interface{}, error)
 
@@ -47,8 +46,6 @@ type apiResponse struct {
 	Message string
 	Data    interface{}
 }
-
-var pool = bpool.NewBufferPool(500)
 
 func (m myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data, err := m(r)
@@ -79,18 +76,13 @@ func serveJSON(w http.ResponseWriter, r *http.Request, statusCode int, message s
 		Message: message,
 		Data:    data,
 	}
-	buf := pool.Get()
-	defer pool.Put(buf)
-	j := json.NewEncoder(buf)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	j := json.NewEncoder(w)
 	if strings.Contains(r.Host, "localhost") {
 		j.SetIndent("", "  ")
 	}
 	if err := j.Encode(resp); err != nil {
-		panic(err)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	if _, err := io.Copy(w, buf); err != nil {
 		panic(err)
 	}
 }
@@ -99,6 +91,9 @@ func serveJSON(w http.ResponseWriter, r *http.Request, statusCode int, message s
 var middlewareChain = alice.New(
 	// handle panics at top
 	panicRecovery,
+	func(h http.Handler) http.Handler {
+		return bugsnag.Handler(h)
+	},
 	// record request counts / times
 	requestMetrics,
 )
@@ -109,10 +104,6 @@ func h(m myHandler, middlewares ...alice.Constructor) http.Handler {
 		return m
 	}
 	return alice.New(middlewares...).Then(m)
-}
-
-func ctx(r *http.Request, key contextKey, value interface{}) *http.Request {
-	return r.WithContext(context.WithValue(r.Context(), key, value))
 }
 
 func panicRecovery(h http.Handler) http.Handler {
@@ -129,12 +120,6 @@ func panicRecovery(h http.Handler) http.Handler {
 	})
 }
 
-type contextKey uint16
-
-const (
-	ctxRoute contextKey = iota
-)
-
 func getRoute(r *http.Request) string {
 	route := mux.CurrentRoute(r)
 	if route != nil {
@@ -145,4 +130,10 @@ func getRoute(r *http.Request) string {
 	}
 	log.Println("Unknown route name!", r.URL.Path)
 	return "unknown"
+}
+
+func init() {
+	bugsnag.Configure(bugsnag.Configuration{
+		APIKey: "",
+	})
 }
