@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -41,7 +40,7 @@ var currentRoute routeDef
 var routes = []routeDef{
 	{
 		Name:    "CreateComment",
-		Method:  http.MethodGet,
+		Method:  http.MethodPost,
 		Route:   "/api/comments",
 		Handler: h(createComment),
 	},
@@ -54,5 +53,13 @@ var routes = []routeDef{
 }
 
 func createComment(r *http.Request) (interface{}, error) {
-	return nil, fmt.Errorf("AAAAAA")
+	return nil, nil
+}
+
+func errAuth() apiError {
+	return apiError{
+		code:    403,
+		errType: "authError",
+		message: "Not authorized",
+	}
 }

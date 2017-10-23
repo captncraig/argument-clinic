@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/bugsnag/bugsnag-go"
@@ -33,6 +34,7 @@ type templateToRender struct {
 // an application error
 type apiError struct {
 	code    int
+	errType string
 	message string
 }
 
@@ -50,10 +52,6 @@ type apiResponse struct {
 func (m myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data, err := m(r)
 	if err != nil {
-		if ae, ok := err.(apiError); ok {
-			serveJSON(w, r, ae.code, ae.message, nil)
-			return
-		}
 		panic(err)
 	}
 	// no data -> empty 200
@@ -91,9 +89,6 @@ func serveJSON(w http.ResponseWriter, r *http.Request, statusCode int, message s
 var middlewareChain = alice.New(
 	// handle panics at top
 	panicRecovery,
-	func(h http.Handler) http.Handler {
-		return bugsnag.Handler(h)
-	},
 	// record request counts / times
 	requestMetrics,
 )
@@ -133,7 +128,20 @@ func getRoute(r *http.Request) string {
 }
 
 func init() {
-	bugsnag.Configure(bugsnag.Configuration{
-		APIKey: "",
+	if bsnagKey := os.Getenv("BUGSNAG_KEY"); bsnagKey != "" {
+		bugsnag.Configure(bugsnag.Configuration{
+			APIKey:       bsnagKey,
+			Logger:       nil,
+			PanicHandler: func() {},
+		})
+		middlewareChain = middlewareChain.Append(bugsnagMiddleware)
+	}
+}
+
+// this just needs to catch unhandled panics. Should be none, so these are the most severe.
+func bugsnagMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		h.ServeHTTP(w, r)
 	})
 }

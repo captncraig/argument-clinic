@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -42,7 +41,6 @@ func init() {
 
 func requestMetrics(h http.Handler) http.Handler {
 	var name = currentRoute.Name
-	fmt.Println(name)
 	inflight := inFlightGauges.WithLabelValues(name)
 	cl := prometheus.Labels{"handler": name}
 

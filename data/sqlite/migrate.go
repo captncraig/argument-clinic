@@ -8,10 +8,10 @@ import (
 )
 
 func (d *db) migrate() error {
-	d.Lock()
-	defer d.Unlock()
 	migs := []*migrate.Migration{}
-	for i, mig := range []string{} {
+	for i, mig := range []string{
+		mig0CreateComments,
+	} {
 		migs = append(migs, &migrate.Migration{
 			Id: fmt.Sprint(i),
 			Up: []string{mig},
@@ -30,3 +30,13 @@ func (d *db) migrate() error {
 	}
 	return nil
 }
+
+const mig0CreateComments = `
+CREATE TABLE Comments (
+	ID integer PRIMARY KEY AUTOINCREMENT,
+	Name text,
+	Email text,
+	Text text NOT NULL,
+	Created integer(4) NOT NULL DEFAULT (strftime('%s','now'))
+);
+`
