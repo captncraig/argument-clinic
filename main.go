@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	d, err := sqlite.New("data.db?_foreign_keys=1", "site.yml")
+	d, err := sqlite.New("data.db?_foreign_keys=1")
 	if err != nil {
 		log.Fatal(err)
 	}
