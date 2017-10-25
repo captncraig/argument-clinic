@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"context"
 	"database/sql"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -27,6 +28,14 @@ func New(sqlFile string) (data.DataAccess, error) {
 	return d, nil
 }
 
-func (d *db) CreateComment(*models.CreateCommentRequest) (string, error) {
-	return "ABC", nil
+func (d *db) CreateComment(ctx context.Context, req *models.CreateCommentRequest) (uint64, error) {
+	const sql = `
+	INSERT INTO Comments(Name, Email, Text)
+	VALUES (?,?,?);`
+	r, err := d.db.ExecContext(ctx, sql, req.Name, req.Email, req.Text)
+	if err != nil {
+		return 0, err
+	}
+	last, err := r.LastInsertId()
+	return uint64(last), err
 }

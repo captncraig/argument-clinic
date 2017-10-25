@@ -31,17 +31,6 @@ type templateToRender struct {
 	ctx interface{}
 }
 
-// an application error
-type apiError struct {
-	code    int
-	errType string
-	message string
-}
-
-func (a apiError) Error() string {
-	return a.message
-}
-
 // the final type that gets sent to the client for all api requests
 type apiResponse struct {
 	Success bool
@@ -52,6 +41,7 @@ type apiResponse struct {
 func (m myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data, err := m(r)
 	if err != nil {
+		//todo: serve app errors gracefully
 		panic(err)
 	}
 	// no data -> empty 200
@@ -64,18 +54,18 @@ func (m myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case templateToRender:
 		panic("template rendering not implemented yet")
 	default:
-		serveJSON(w, r, http.StatusOK, "ok", x)
+		serveJSON(w, r, x)
 	}
 }
 
-func serveJSON(w http.ResponseWriter, r *http.Request, statusCode int, message string, data interface{}) {
+func serveJSON(w http.ResponseWriter, r *http.Request, data interface{}) {
 	resp := &apiResponse{
-		Success: statusCode < 300,
-		Message: message,
+		Success: true,
+		Message: "ok",
 		Data:    data,
 	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
+	w.WriteHeader(http.StatusOK)
 	j := json.NewEncoder(w)
 	if strings.Contains(r.Host, "localhost") {
 		j.SetIndent("", "  ")
@@ -123,7 +113,7 @@ func getRoute(r *http.Request) string {
 			return rn
 		}
 	}
-	log.Println("Unknown route name!", r.URL.Path)
+	// TODO: log this to bugsnag
 	return "unknown"
 }
 
@@ -141,7 +131,7 @@ func init() {
 // this just needs to catch unhandled panics. Should be none, so these are the most severe.
 func bugsnagMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
+		// TODO:
 		h.ServeHTTP(w, r)
 	})
 }
