@@ -10,6 +10,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/captncraig/argument-clinic/data"
+	"github.com/captncraig/argument-clinic/errors"
 	"github.com/captncraig/argument-clinic/models"
 )
 
@@ -65,7 +66,7 @@ func (s *server) createComment(r *http.Request) (interface{}, error) {
 	dec := json.NewDecoder(r.Body)
 	req := &models.CreateCommentRequest{}
 	if err := dec.Decode(req); err != nil {
-		return nil, errDecodingJSON(err)
+		return nil, errors.ErrDecodingJSON(err)
 	}
 	if req.Name == "" {
 		req.Name = "Anonymous"
