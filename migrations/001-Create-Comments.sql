@@ -1,0 +1,10 @@
+-- Up
+
+CREATE TABLE Comments (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL, 
+    text TEXT NOT NULL,
+    created DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Down
