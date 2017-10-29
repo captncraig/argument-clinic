@@ -6,8 +6,6 @@ import * as hids from 'hashids';
 import { DataAccess } from './db/db'
 import { CreateCommentReq, Model } from './models'
 
-
-
 function bodyAs(cstr: new () => Model): RequestHandler {
     return async (req, res, next) => {
         var target: any = new cstr();
@@ -17,7 +15,7 @@ function bodyAs(cstr: new () => Model): RequestHandler {
         }
         var msgs = await (target as Model).Validate();
         if (msgs.length > 0) {
-            console.log(msgs,"!!!!!!!!!!!!!!!")
+            console.log(msgs,"!!!!!!!!!!!!!!")
         }
         req.body = target;
         next();
