@@ -6,7 +6,9 @@
     "start": "npm run build:server && node ./dist/server.js",
     "build:server": "tsc -p tsconfig.server.json",
     "watch:server": "tsc -w -p tsconfig.server.json",
-    "dev": "concurrently --kill-others \"npm run watch:server\" \"nodemon dist/server.js\""
+    "build:client": "webpack",
+    "watch:client": "webpack -w",
+    "dev": "concurrently --kill-others \"npm run watch:server\" \"nodemon dist/server.js\" \"npm run watch:client\""
   },
   "dependencies": {
     "@types/express": "^4.0.39",
