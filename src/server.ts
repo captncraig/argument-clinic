@@ -20,10 +20,11 @@ main()
 
 const testpage = `<html>
   <head>
-    <script src="client.js"></script>
+    
   </head>
   <body>
     <h1>Argument Clinic Test Page</h1>
     <div class="ac-comments"></div>
+    <script src="client.js"></script>
   </body>
 </html>`

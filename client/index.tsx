@@ -10,6 +10,7 @@ export default class HelloWorld extends Component<HelloWorldProps, any> {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function(){ 
-    render(<HelloWorld name="World" />, document.querySelector('.ac-comments'));
-}, false);
+var el = document.querySelector(".ac-comments");
+if (el){
+    render(<HelloWorld name="World" />, el);
+}
