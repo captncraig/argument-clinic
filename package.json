@@ -41,5 +41,8 @@
     "glitch",
     "express"
   ],
-  "devDependencies": {}
+  "devDependencies": {},
+  "nodemonConfig": {
+    "ignore": ["client*"]
+  }
 }
